@@ -1,0 +1,73 @@
+<pre>
+----------
+<custom:rg:encode>
+1.&amp;
+2.#("&")#
+3.&
+<script language="cache" runat="server">
+	write "foo"
+</script>
+#[ zwrite ]#
+##($horolog)##
+4. ddd
+</custom:rg:encode>
+----------
+</pre>
+
+----------
+<custom:rg:encode url>
+1.&amp;amp;
+2.&amp;
+3.&amp;
+
+
+%CSPsc=1
+%request=&lt;OBJECT REFERENCE&gt;[1@%CSP.Request]
+%response=&lt;OBJECT REFERENCE&gt;[2@%CSP.Response]
+%session=&lt;OBJECT REFERENCE&gt;[3@%CSP.Session]
+Timers=1
+Timers(1,&quot;Attributes&quot;)=&quot;&quot;
+currIO=&quot;UTF8&quot;
+62785,63027
+4. ddd
+</custom:rg:encode>
+----------
+
+<hr>
+
+<pre>
+#($ZCVT("& &amp;", "O", "HTML"))#
+
+#($ZCVT("& &amp;", "I", "HTML"))#
+</pre>
+
+<hr>
+
+<script language="cache" runat="server">
+	
+	try {
+		write !,"about to divide by zero"
+		set a=7/0
+		write !,"this should not display"
+	} catch (e) {
+		//write "<pre>"
+		//do $system.OBJ.Dump(e)
+		//write "</pre>"
+		/*
+		write:($length(e.Name)) "Name: ", e.Name, !
+		write:($length(e.Code)) "Code: ", e.Code, !
+		write:($length(e.Data)) "Data: ", e.Data, !
+		write:($length(e.Location)) "Location: ", e.Location, !
+		write:($isobject(e.InnerException)) "InnerException: ", e.InnerException, !
+		*/
+		if (##class(dt.cms.support.Rules).getDebug()) {
+			
+			do ##class(dt.cms.support.Rules).debugRule($case($data(%request.Data("debug", 1)), 1:1, :0), "test" _ e.DisplayString())
+			do ##class(%CSP.Page).ShowError(e.AsStatus())
+			
+		}
+	}
+	
+</script>
+
+ddd

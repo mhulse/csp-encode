@@ -1,0 +1,73 @@
+<csr:rule name="custom.rg.EncodeRule" match="custom:rg:encode" textonly>
+	
+	<csr:class super="dt.common.page.Rule" />
+	
+	<csr:description>...</csr:description>
+	
+	<csr:attribute name="raw"  description="Performs no translation." type="raw:STRING" />
+	<csr:attribute name="same" description="Performs no translation on 8-bit systems, and translates 8-bit characters to the corresponding Unicode character on Unicode systems." type="same:STRING" />
+	<csr:attribute name="html" description="Adds (output mode) or removes (input mode) HTML escape characters to a string." type="html:STRING" />
+	<csr:attribute name="js"   description="Uses a supplied JavaScript translation table to convert to the format for Zen component pages. The output translation for NULL ($CHAR(0)) is ?\x00?; for input translations, ?\0?, ?\000?, ?\x00?, and ?\u0000? are all valid escape sequences for NULL." type="js:STRING" />
+	<csr:attribute name="url"  description="Adds (output mode) or removes (input mode) URL parameter escape characters to a string. Characters higher than $CHAR(255) are represented in Unicode hexadecimal notation: $CHAR(256) = %u0100." type="url:STRING" />
+	<csr:attribute name="utf8" description="Converts (output mode) 16-bit Unicode characters to a series of 8-bit characters. Thus, the characters $CHAR(0) through $CHAR(127) are the same in RAW and UTF8 mode; characters $CHAR(128) and above are converted." type="utf8:STRING" />
+	<csr:attribute name="xml"  description="Adds (output mode) or removes (input mode) XML escape characters to a string." type="xml:STRING" />
+	
+	<csr:action>
+		
+		<script language="cache" runat="compiler">
+			do ..RenderDTStartTag()
+		</script>
+		
+		<script language="cache" runat="server">
+			
+			; Declare:
+			new currIO, mode
+			
+			; Initialize:
+			set currIO = "",
+			mode = $select(
+				##'..IsDefined("raw")'##  :"RAW",
+				##'..IsDefined("same")'## :"SAME",
+				##'..IsDefined("js")'##   :"JS",
+				##'..IsDefined("url")'##  :"URL",
+				##'..IsDefined("utf8")'## :"UTF8",
+				##'..IsDefined("xml")'##  :"XML",
+				                        1 :"HTML"
+			)
+					
+			try {
+				
+				set currIO = ##class(%SYS.NLS.Device).SetIO(mode)
+				
+				write ##'..InnerText()'##
+				
+			} catch (e) {
+				
+				//write "Code: ", e.Code, ", Data: ", e.Data, ", InnerException: ", e.InnerException, ", Location: ", e.Location, ", Name: ", e.Name
+				
+				if (##class(dt.cms.support.Rules).getDebug()) {
+					
+					do ##class(dt.cms.support.Rules).debugRule($case($data(%request.Data("debug", 1)), 1:1, :0), "custom:rg:encode - " _ e.DisplayString())
+					do ##class(%CSP.Page).ShowError(e.AsStatus())
+					
+				}
+				
+			}
+			
+			if ($length($get(currIO))) {
+				
+				do ##class(%SYS.NLS.Device).SetIO(currIO)
+				
+			}
+			
+			kill currIO, mode
+			
+		</script>
+		
+		<script language="cache" runat="compiler">
+			do ..RenderDTEndTag()
+		</script>
+		
+	</csr:action>
+	
+</csr:rule>
